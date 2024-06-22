@@ -1,0 +1,30 @@
+{
+    "introduction": "Let's beat the heat with these two summer outfits.",
+    "outfits": [
+        {
+            "outfit_number": "1",
+            "ware": "Polo",
+            "id": "image_id/polo.jpg",
+            "reasoning": "The white polo will keep you cool, while the grey shorts will be comfortable and breathable.  Plus, the red accents in the polo add a touch of style."
+        },
+        {
+            "outfit_number": "1",
+            "ware": "Shorts",
+            "id": "image_id/shorts.jpg",
+            "reasoning": "The white polo will keep you cool, while the grey shorts will be comfortable and breathable.  Plus, the red accents in the polo add a touch of style."
+        },
+        {
+            "outfit_number": "2",
+            "ware": "Jersey",
+            "id": "image_id/jersey.jpg",
+            "reasoning": "This outfit is a great choice for a more casual look.  The green and black jersey will keep you cool, while the black jogging pants will be comfortable and stylish."
+        },
+        {
+            "outfit_number": "2",
+            "ware": "Jogging Pants",
+            "id": "image_id/joggingpants.jpg",
+            "reasoning": "This outfit is a great choice for a more casual look.  The green and black jersey will keep you cool, while the black jogging pants will be comfortable and stylish."
+        }
+    ],
+    "end": "You'll look great and feel even better in these outfits. \n\noutfit: 2\nware: Jersey\nid: image_id/jersey.jpg\nware: Jogging Pants\nid: image_id/joggingpants.jpg\nreasoning: This outfit is a great choice for a more casual look.  The green and black jersey will keep you cool, while the black jogging pants will be comfortable and stylish. \nend: Enjoy the summer heat in these outfits."
+}
