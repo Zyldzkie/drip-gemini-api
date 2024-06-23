@@ -142,19 +142,22 @@ class DripGemini:
         parsed_json = DripGemini.parse_personalized_response(response.text)
         print(response.text)
 
-        DripGemini.save_json_to_file(parsed_json, 'sample_output.json')
+        DripGemini.save_json_to_file(parsed_json, os.path.join("..", "sample_output.json"))
     
 
 
-# List of file paths for upload
-image_paths = ["data/jacket.jpg", "data/jersey.jpg", 
-        "data/joggingpants.jpg", "data/polo.jpg", 
-        "data/shorts.jpg", "data/slacks.jpg"]
+def get_image_paths(folder_path):
+    image_paths = []
+    for root, dirs, files in os.walk(folder_path):
+        for file in files:
+            if file.lower().endswith(('.png', '.jpg', '.jpeg', '.webp', '.heic', 'heif')):
+                image_paths.append(os.path.join(root, file))
+    return image_paths
 
 load_dotenv()
 
-drip_gemini = DripGemini(os.getenv("API_KEY"), "gemini-1.5-flash", image_paths)
+drip_gemini = DripGemini(os.getenv("API_KEY"), "gemini-1.5-flash", get_image_paths(os.path.join('..', 'data')))
 
-drip_gemini.personalized_suggestion("Give me 3 stylish outfits")
+drip_gemini.personalized_suggestion("Reccomend me two dark outfits")
 
 

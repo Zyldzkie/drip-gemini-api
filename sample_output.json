@@ -1,42 +1,30 @@
 {
-    "introduction": "These outfits are perfect for a variety of occasions!",
+    "introduction": "These dark outfits are perfect for a night out or a casual day look!",
     "outfits": [
         {
             "outfit": "1",
-            "ware": "jersey",
-            "id": "image_id/jersey.jpg",
-            "reasoning": "The jersey adds a sporty touch while the jogging pants provide comfort and style."
+            "ware": "joggingpants",
+            "id": "image_id/joggingpants.jpg",
+            "reasoning": "The jogging pants provide comfort while the hoodie adds a stylish layer of warmth."
         },
         {
             "outfit": "1",
-            "ware": "jogging pants",
-            "id": "image_id/joggingpants.jpg",
-            "reasoning": "The jersey adds a sporty touch while the jogging pants provide comfort and style."
-        },
-        {
-            "outfit": "2",
-            "ware": "polo shirt",
-            "id": "image_id/polo.jpg",
-            "reasoning": "The polo shirt adds a touch of sophistication while the shorts keep it casual and comfortable."
-        },
-        {
-            "outfit": "2",
-            "ware": "shorts",
-            "id": "image_id/shorts.jpg",
-            "reasoning": "The polo shirt adds a touch of sophistication while the shorts keep it casual and comfortable."
-        },
-        {
-            "outfit": "3",
-            "ware": "jacket",
+            "ware": "hoodie",
             "id": "image_id/jacket.jpg",
-            "reasoning": "The jacket adds warmth while the slacks provide a more formal and stylish look, perfect for a semi-formal occasion."
+            "reasoning": "The jogging pants provide comfort while the hoodie adds a stylish layer of warmth."
         },
         {
-            "outfit": "3",
+            "outfit": "2",
+            "ware": "jersey",
+            "id": "image_id/jersey.jpg",
+            "reasoning": "The jersey adds a touch of sportiness while the slacks offer a more formal look, making it perfect for a semi-formal occasion."
+        },
+        {
+            "outfit": "2",
             "ware": "slacks",
             "id": "image_id/slacks.jpg",
-            "reasoning": "The jacket adds warmth while the slacks provide a more formal and stylish look, perfect for a semi-formal occasion."
+            "reasoning": "The jersey adds a touch of sportiness while the slacks offer a more formal look, making it perfect for a semi-formal occasion."
         }
     ],
-    "end": "You will look great in any of these outfits! \ud83d\ude0a"
+    "end": "These outfits are sure to turn heads! \ud83d\ude0e"
 }
