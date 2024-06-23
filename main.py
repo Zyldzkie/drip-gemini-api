@@ -5,118 +5,156 @@ from PIL import Image
 import json
 import re
 
-# Setup
-load_dotenv()
-api_key = os.getenv("API_KEY")
-genai.configure(api_key=api_key)
-model = genai.GenerativeModel('gemini-1.5-flash')
 
-# Start remembering
-chat = model.start_chat(history=[])
+class DripGemini:
 
-# Query for input
-user_suggestion = input("What do you like: ")
+
+    def __init__(self, api_key, model_name, image_pool):
+        self.api_key = api_key
+        self.model_name = model_name
+        self.image_pool = image_pool
+        self.file_ids = {}
+
+        self.configure()
+
+
+    def configure(self):
+        genai.configure(api_key=self.api_key)
+        self.model = genai.GenerativeModel(self.model_name)
+
+
+    @staticmethod
+    def parse_personalized_response(ai_response):
+        parsed_data = {
+            "introduction": "",
+            "outfits": [],
+            "end": ""
+        }
+
+        # Define regex patterns for each section
+        intro_pattern = r"intro: (.*?)\n"
+        outfit_pattern = r"outfit: (\d+)\n((?:ware: (.*?)\nid: (.*?)\n)+)reasoning: (.*?)\n"
+        end_pattern = r"end: (.*?)$"
+
+        # Find introduction
+        intro_match = re.search(intro_pattern, ai_response, re.DOTALL)
+        if intro_match:
+            parsed_data["introduction"] = intro_match.group(1).strip()
+
+        # Find outfits
+        outfit_matches = re.finditer(outfit_pattern, ai_response, re.DOTALL)
+        for match in outfit_matches:
+            outfit_number = match.group(1)
+            reasoning = match.group(5).strip()
+
+            outfits_data = []
+            ware_id_pairs = re.findall(r"ware: (.*?)\nid: (.*?)\n", match.group(2))
+
+            for ware_name, image_id in ware_id_pairs:
+                outfit_data = {
+                    "outfit": outfit_number,
+                    "ware": ware_name.strip(),
+                    "id": image_id.strip(),
+                    "reasoning": reasoning
+                }
+                outfits_data.append(outfit_data)
+
+            parsed_data["outfits"].extend(outfits_data)
+
+        # Find end
+        end_match = re.search(end_pattern, ai_response, re.DOTALL)
+        if end_match:
+            parsed_data["end"] = end_match.group(1).strip()
+
+        return parsed_data
+    
+
+    @staticmethod
+    def save_json_to_file(data, filename):
+        with open(filename, 'w') as f:
+            json.dump(data, f, indent=4)
+
+    
+    def upload_image_context(self):
+
+        # Send image id with the uploaded image file
+        for image_path in self.image_pool:
+            with open(image_path, "rb") as image_file:
+                image_data = image_file.read()
+            
+            file_name = os.path.basename(image_path)
+            image_id = f"image_id/{file_name}"
+
+            self.chat.send_message({
+                "parts": [
+                    {"text": f"image id = {image_id}:"},
+                    {"mime_type": "image/jpeg", "data": image_data}
+                ]
+            })
+
+
+    def personalized_suggestion(self, user_prompt):
+
+        # Start remembering
+        self.chat = self.model.start_chat(history=[])
+
+        user_suggestion = user_prompt
+
+        self.upload_image_context()
+
+
+        response = self.chat.send_message(f"""
+            Based on the images, {user_suggestion}, I am implying on an outfit.
+
+            Please follow this strict format for your response (Do not include any extra text or decorations):
+
+            intro: [brief introduction about the outfit] (there is only one intro)
+
+            outfit: [number]
+            ware: [ware_name]
+            id: [ware_id]
+            ware: [ware_name]
+            id: [ware_id]
+            reasoning: [reasoning for the outfit]
+
+            end: [encouraging words about the outfit appended with an emoji] (there is only one end)
+
+            Example:
+            intro: This outfit is perfect for a fantastic casual day out!
+
+            outfit: 1
+            ware: jacket
+            id: image_id/jacket.jpg
+            ware: shorts
+            id: image_id/shorts.jpg
+            reasoning: The jacket provides warmth while the shorts keep it casual and comfortable.
+    
+            outfit: 2
+            ware: polo shirt
+            id: image_id/polo.jpg
+            ware: slacks
+            id: image_id/slacks.jpg
+            reasoning: The polo shirt adds a touch of sophistication while the slacks offer both style and comfort, making it perfect for a semi-formal occasion.
+
+            end: You will look great in this outfit! 😊
+            """)
+                    
+        parsed_json = DripGemini.parse_personalized_response(response.text)
+        print(response.text)
+
+        DripGemini.save_json_to_file(parsed_json, 'sample_output.json')
+    
 
 
 # List of file paths for upload
-file_paths = ["data/jacket.jpg", "data/jersey.jpg", 
-              "data/joggingpants.jpg", "data/polo.jpg", 
-              "data/shorts.jpg", "data/slacks.jpg"]
+image_paths = ["data/jacket.jpg", "data/jersey.jpg", 
+        "data/joggingpants.jpg", "data/polo.jpg", 
+        "data/shorts.jpg", "data/slacks.jpg"]
 
-file_ids = {}
+load_dotenv()
 
-# Upload files and store their IDs
-for file_path in file_paths:
-    with open(file_path, "rb") as image_file:
-        image_data = image_file.read()
-    
-    uploaded_file = genai.upload_file(file_path)
-    file_name = os.path.basename(file_path)
-    file_id = f"image_id/{file_name}"
+drip_gemini = DripGemini(os.getenv("API_KEY"), "gemini-1.5-flash", image_paths)
 
-    # Send message with the uploaded file
-    response = chat.send_message({
-        "parts": [
-            {"text": f"image id = {file_id}:"},
-            {"mime_type": "image/jpeg", "data": image_data}
-        ]
-    })
-
-response = chat.send_message(f"""
-                            Based on the images, 
-                            {user_suggestion}.
-                            I am implying on an outfit.
-                            this is the strict format of your output:
-                            First, start the conversation with a very brief introduction about the outfit I want 
-                            (follow the format intro: introduction_words [there is only one intro]).
-                            Second, tell me the outfit number 
-                            (follow the format outfit: num).
-                            Third, tell me their corresponding image id and specify what is the ware used
-                            (follow the format 'ware: name [newline] id: ware_id').
-                            Fourth, move on to the second ware if there's any, then specify the ware used, 
-                            loop until no ware is left.
-                            Fifth, explain the overall reasoning why you chose that ware for the outfit
-                            (follow the format reasoning: your_reasoning).
-                            Lastly, conclude the conversation with encouragement of my outfit target
-                            (follow the format end: ending_words [there is only one end])""")
-
-
-def parse_ai_response(ai_response):
-    parsed_data = {
-        "introduction": "",
-        "outfits": [],
-        "end": ""
-    }
-
-    # Define regex patterns for each section
-    intro_pattern = r"intro: (.*?)\n"
-    outfit_pattern = r"outfit: (\d+)\n((?:ware: (.*?)\nid: (.*?)\n)+)reasoning: (.*?)\n"
-    end_pattern = r"end: (.*?)$"
-
-    # Find introduction
-    intro_match = re.search(intro_pattern, ai_response, re.DOTALL)
-    if intro_match:
-        parsed_data["introduction"] = intro_match.group(1).strip()
-
-    # Find outfits
-    outfit_matches = re.finditer(outfit_pattern, ai_response, re.DOTALL)
-    for match in outfit_matches:
-        outfit_number = match.group(1)
-        reasoning = match.group(5).strip()
-
-        outfits_data = []
-        ware_id_pairs = re.findall(r"ware: (.*?)\nid: (.*?)\n", match.group(2))
-
-        for ware_name, image_id in ware_id_pairs:
-            outfit_data = {
-                "outfit_number": outfit_number,
-                "ware": ware_name.strip(),
-                "id": image_id.strip(),
-                "reasoning": reasoning
-            }
-            outfits_data.append(outfit_data)
-
-        parsed_data["outfits"].extend(outfits_data)
-
-    # Find end
-    end_match = re.search(end_pattern, ai_response, re.DOTALL)
-    if end_match:
-        parsed_data["end"] = end_match.group(1).strip()
-
-    return parsed_data
-
-def save_json_to_file(data, filename):
-    with open(filename, 'w') as f:
-        json.dump(data, f, indent=4)
-
-
-parsed_json = parse_ai_response(response.text)
-
-print(json.dumps(parsed_json, indent=4))
-
-save_json_to_file(parsed_json, 'parsed_output.json')
-
-print(response.text)
-
+drip_gemini.personalized_suggestion("Give me 3 stylish outfits")
 
 
