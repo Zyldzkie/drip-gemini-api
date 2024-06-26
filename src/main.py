@@ -17,6 +17,10 @@ class DripGemini:
 
         self.configure()
 
+        # Start remembering
+        self.chat = self.model.start_chat(history=[])
+        self.upload_image_context()
+
 
     def configure(self):
         genai.configure(api_key=self.api_key)
@@ -95,20 +99,14 @@ class DripGemini:
 
     def personalized_suggestion(self, user_prompt):
 
-        # Start remembering
-        self.chat = self.model.start_chat(history=[])
-
         user_suggestion = user_prompt
-
-        self.upload_image_context()
-
 
         response = self.chat.send_message(f"""
             Based on the images, {user_suggestion}, I am implying on an outfit.
 
             Please follow this strict format for your response (Do not include any extra text or decorations):
 
-            intro: [brief introduction about the outfit] (there is only one intro)
+            intro: [introduction about the outfit I reffered to] (there is only one intro)
 
             outfit: [number]
             ware: [ware_name]
@@ -156,8 +154,8 @@ def get_image_paths(folder_path):
 
 load_dotenv()
 
-drip_gemini = DripGemini(os.getenv("API_KEY"), "gemini-1.5-flash", get_image_paths(os.path.join('..', 'data')))
+drip_gemini = DripGemini(os.getenv("API_KEY"), "gemini-1.5-flash", get_image_paths(os.path.join("..\\data")))
 
-drip_gemini.personalized_suggestion("Reccomend me two dark outfits")
+drip_gemini.personalized_suggestion("reccomend me a red hooded")
 
-
+#drip_gemini.personalized_suggestion("i dont like that one. give me another of what I said before")
