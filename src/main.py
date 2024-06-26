@@ -4,6 +4,7 @@ import google.generativeai as genai
 from PIL import Image
 import json
 import re
+from flask import Flask, request, jsonify
 
 
 class DripGemini:
@@ -28,7 +29,7 @@ class DripGemini:
 
 
     @staticmethod
-    def parse_personalized_response(ai_response):
+    def parse_tailoring_response(ai_response):
         parsed_data = {
             "introduction": "",
             "outfits": [],
@@ -72,12 +73,6 @@ class DripGemini:
 
         return parsed_data
     
-
-    @staticmethod
-    def save_json_to_file(data, filename):
-        with open(filename, 'w') as f:
-            json.dump(data, f, indent=4)
-
     
     def upload_image_context(self):
 
@@ -97,7 +92,7 @@ class DripGemini:
             })
 
 
-    def personalized_suggestion(self, user_prompt):
+    def tailoring(self, user_prompt):
 
         user_suggestion = user_prompt
 
@@ -137,11 +132,9 @@ class DripGemini:
             end: You will look great in this outfit! 😊
             """)
                     
-        parsed_json = DripGemini.parse_personalized_response(response.text)
-        print(response.text)
-
-        DripGemini.save_json_to_file(parsed_json, os.path.join("..", "sample_output.json"))
-    
+        parsed_response = DripGemini.parse_tailoring_response(response.text)
+        
+        return parsed_response
 
 
 def get_image_paths(folder_path):
@@ -152,10 +145,25 @@ def get_image_paths(folder_path):
                 image_paths.append(os.path.join(root, file))
     return image_paths
 
+
+
 load_dotenv()
 
-drip_gemini = DripGemini(os.getenv("API_KEY"), "gemini-1.5-flash", get_image_paths(os.path.join("..\\data")))
+app = Flask(__name__)
 
-drip_gemini.personalized_suggestion("reccomend me a red hooded")
+@app.route('/tailoring', methods=['POST'])
+def tailoring():
+    data = request.get_json()
+    prompt = data.get('prompt')
+    image_paths = data.get('image_paths')
 
-#drip_gemini.personalized_suggestion("i dont like that one. give me another of what I said before")
+    drip_gemini = DripGemini(os.getenv("API_KEY"), "gemini-1.5-flash", get_image_paths(os.path.join("..\\data")))
+
+    response = drip_gemini.tailoring(prompt)
+
+    return jsonify(response)
+
+
+if __name__ == '__main__':
+    app.run(host='0.0.0.0', port=5000, debug=True)
+
